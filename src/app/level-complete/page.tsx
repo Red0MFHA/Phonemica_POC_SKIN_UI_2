@@ -21,7 +21,7 @@ export default function LevelCompletePage() {
       setResult({
         stars: 3,
         nextLevelId: lv?.id,
-        rewardLabel: lv ? "A new planet is unlocked!" : "Galaxy conquered!",
+        rewardLabel: lv ? "Next hostile wave incoming!" : "Sector defended — ship secured!",
         mastered: true,
       });
     });
@@ -34,8 +34,8 @@ export default function LevelCompletePage() {
 
       <div className="relative z-10 flex flex-col items-center">
         <div className="animate-floaty text-8xl drop-shadow-2xl">🛸</div>
-        <h1 className="mt-4 animate-pop-in text-4xl font-black text-white drop-shadow-lg">Level Complete!</h1>
-        <p className="mt-3 text-xl font-semibold text-cyan-200">{result?.rewardLabel ?? "Great exploring!"}</p>
+        <h1 className="mt-4 animate-pop-in text-4xl font-black text-white drop-shadow-lg">Wave Cleared!</h1>
+        <p className="mt-3 text-xl font-semibold text-cyan-200">{result?.rewardLabel ?? "Ship secured!"}</p>
 
         <div className="mt-5 flex gap-1 text-5xl">
           {Array.from({ length: result?.stars ?? 0 }).map((_, i) => <span key={i} className="animate-pop-in" style={{ animationDelay: `${0.25 * i}s` }}>⭐</span>)}
@@ -53,8 +53,7 @@ export default function LevelCompletePage() {
             className="w-full rounded-2xl border-2 border-cyan-400 px-6 py-4 text-2xl font-bold text-cyan-100 transition-transform hover:scale-105 active:scale-95"
           >
             See progress
-          </button>
-        </div>
+          </button>        </div>
       </div>
     </div>
   );

@@ -45,10 +45,69 @@ interface SessionState {
   diagnosticIndex: number;
 }
 
+interface PersistedState {
+  session: Session;
+  currentLevel: Level;
+  levelIndex: number;
+  exerciseIndex: number;
+  stars: number;
+  mastered: string[];
+  phonemeAccuracy: Record<string, { total: number; count: number }>;
+  diagnosticIndex: number;
+}
+
+// State is persisted to localStorage because, in the browser, each Next.js client
+// component mount gets its own module instance. Without persistence, a child or
+// session created on one page would be invisible on the next (the classic
+// "home page stuck on Loading" bug). localStorage makes the mock behave like the
+// real engine, which is stateful across requests.
+const DB_KEY = "cosmic-rescue-db";
+
+function loadDB(): { children: ChildProfile[]; states: PersistedState[] } {
+  if (typeof window === "undefined") return { children: [], states: [] };
+  try {
+    const raw = window.localStorage.getItem(DB_KEY);
+    return raw ? JSON.parse(raw) : { children: [], states: [] };
+  } catch {
+    return { children: [], states: [] };
+  }
+}
+
+function saveDB(children: ChildProfile[], states: PersistedState[]) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(DB_KEY, JSON.stringify({ children, states }));
+  } catch {
+    /* ignore */
+  }
+}
+
 export class MockEngineClient implements EngineClient {
   private children = new Map<string, ChildProfile>();
   private states = new Map<string, SessionState>();
-  private idCounter = 0;
+
+  constructor() {
+    const db = loadDB();
+    db.children.forEach((c) => this.children.set(c.id, c));
+    db.states.forEach((s) =>
+      this.states.set(s.session.id, { ...s, mastered: new Set(s.mastered) })
+    );
+  }
+
+  private persist() {
+    const children = Array.from(this.children.values());
+    const states: PersistedState[] = Array.from(this.states.values()).map((s) => ({
+      session: s.session,
+      currentLevel: s.currentLevel,
+      levelIndex: s.levelIndex,
+      exerciseIndex: s.exerciseIndex,
+      stars: s.stars,
+      mastered: Array.from(s.mastered),
+      phonemeAccuracy: s.phonemeAccuracy,
+      diagnosticIndex: s.diagnosticIndex,
+    }));
+    saveDB(children, states);
+  }
 
   levels(): Level[] {
     return TARGETS.map((ph, i) => ({
@@ -75,6 +134,7 @@ export class MockEngineClient implements EngineClient {
       targets: input.declaredPhonemes,
     };
     this.children.set(child.id, child);
+    this.persist();
     return child;
   }
 
@@ -102,6 +162,7 @@ export class MockEngineClient implements EngineClient {
       phonemeAccuracy: {},
       diagnosticIndex: 0,
     });
+    this.persist();
     return session;
   }
 
@@ -181,6 +242,7 @@ export class MockEngineClient implements EngineClient {
     rec.count += 1;
     st.phonemeAccuracy[exercise.targetPhoneme] = rec;
     st.exerciseIndex += 1;
+    this.persist();
 
     return {
       attemptId: runId("att"),
@@ -227,6 +289,7 @@ export class MockEngineClient implements EngineClient {
       st.currentLevel = next;
       st.session.currentLevelId = next.id;
     }
+    this.persist();
     return {
       stars,
       nextLevelId: next?.id,
@@ -253,6 +316,7 @@ export class MockEngineClient implements EngineClient {
         child.targets = weakest.map((w) => w.ph);
       }
     }
+    this.persist();
   }
 
   async getProgress(sessionId: string): Promise<SessionProgress> {
@@ -264,6 +328,7 @@ export class MockEngineClient implements EngineClient {
         st.mastered.has(ph) || acc >= 0.75 ? "mastered" : acc >= 0.5 ? "developing" : "needs_practice";
       return { phoneme: ph, accuracy: Math.round(acc * 100), mastery };
     });
+    this.persist();
     return { childId: st.session.childId, sessionId, totalStars: st.stars, phonemes };
   }
 }

@@ -72,9 +72,51 @@ body {
   animation: confetti-fall linear infinite;
 }
 
+/* ---------- Spaceship-shooter (Cosmic Defense) animations ---------- */
+
+@keyframes threat-fall {
+  0% { transform: translateY(-40vh) rotate(0deg) scale(0.6); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateY(8vh) rotate(360deg) scale(1.15); opacity: 1; }
+}
+.animate-threat-fall {
+  animation: threat-fall 1.6s linear forwards;
+}
+
+@keyframes laser {
+  0% { opacity: 0; transform: scaleX(0.2); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: scaleX(1); }
+}
+.animate-laser {
+  animation: laser 0.55s ease-out forwards;
+}
+
+@keyframes ship-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+.animate-ship-shake {
+  animation: ship-shake 0.55s ease-in-out;
+}
+
+@keyframes blast {
+  0% { transform: scale(0.3); opacity: 0; }
+  40% { transform: scale(1.25); opacity: 1; }
+  70% { transform: scale(1.55); opacity: 0.9; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+.animate-blast {
+  animation: blast 0.8s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-floaty, .animate-bob, .animate-pop-in, .animate-wiggle,
-  .animate-twinkle, .animate-pulse-ring, .confetti-piece {
+  .animate-twinkle, .animate-pulse-ring, .confetti-piece,
+  .animate-threat-fall, .animate-laser, .animate-ship-shake, .animate-blast {
     animation: none !important;
   }
 }

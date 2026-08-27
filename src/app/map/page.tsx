@@ -28,14 +28,14 @@ export default function MapPage() {
     <div className={`relative flex min-h-screen flex-col items-center overflow-hidden bg-gradient-to-b ${theme.background} p-6`}>
       <BgZone />
       <div className="relative z-10 flex w-full max-w-xs flex-col items-center">
-        <h1 className="mt-2 text-3xl font-black text-white drop-shadow">Star Map 🚀</h1>
-        <p className="mt-1 text-base text-cyan-200">Chart a course to rescue your sounds</p>
+        <h1 className="mt-2 text-3xl font-black text-white drop-shadow">Defense Line 🚀</h1>
+        <p className="mt-1 text-base text-cyan-200">Protect the ship — clear each hostile wave</p>
 
         <div className="mt-8 flex w-full flex-col items-center gap-4">
           {[1, 2, 3, 4, 5].map((i) => {
             const isUnlocked = i <= unlocked;
             const isCurrent = current?.index === i;
-            const marker = ["🛰️", "🌌", "🪐", "☄️", "🌠"][i - 1];
+            const marker = ["☄️", "👾", "🪨", "🛸", "🌋"][i - 1];
             return (
               <button
                 key={i}
