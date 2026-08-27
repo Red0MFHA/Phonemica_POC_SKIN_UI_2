@@ -9,17 +9,19 @@ import { getGameState } from "@/lib/state";
 import { createRecorder } from "@/lib/audio";
 import BgZone from "@/components/BgZone";
 import Confetti from "@/components/Confetti";
+import { ThreatSprite, Bullet, type ThreatKind } from "@/components/SpaceProps";
 import type { Exercise } from "@/types/engine";
 
 const EXERCISES_PER_LEVEL = 5;
 
-// Each target sound looks like a different inbound threat the ship must shoot down.
-const threatForPhoneme: Record<string, { threat: string; debris: string }> = {
-  "/r/": { threat: "🪨", debris: "🪨💥" },
-  "/s/": { threat: "☄️", debris: "☄️💥" },
-  "/th/": { threat: "👾", debris: "👾💥" },
-  "/k/": { threat: "🛸", debris: "🛸💥" },
-  "/l/": { threat: "🪐", debris: "🪐💥" },
+// Each target sound is a different inbound threat the ship shoots down.
+// SVGs are the real props; the emoji string is the fallback.
+const threatForPhoneme: Record<string, { kind: ThreatKind; fallback: string }> = {
+  "/r/": { kind: "rock", fallback: "🪨" },
+  "/s/": { kind: "meteor", fallback: "☄️" },
+  "/th/": { kind: "drone", fallback: "👾" },
+  "/k/": { kind: "saucer", fallback: "🛸" },
+  "/l/": { kind: "comet", fallback: "🪐" },
 };
 
 export default function ExercisePage({ params }: { params: { id: string } }) {
@@ -45,7 +47,7 @@ export default function ExercisePage({ params }: { params: { id: string } }) {
   }
 
   const current = exercise;
-  const threat = threatForPhoneme[current.targetPhoneme] ?? { threat: "🪨", debris: "🪨💥" };
+  const threat = threatForPhoneme[current.targetPhoneme] ?? { kind: "rock" as ThreatKind, fallback: "🪨" };
 
   async function record() {
     setRecording(true);
@@ -57,6 +59,7 @@ export default function ExercisePage({ params }: { params: { id: string } }) {
     setBusy(true);
     const res = await engineClient.submitSpeech(current.sessionId, current.id, blob);
     setBusy(false);
+    // Result arrives: NOW the obstacle is destroyed or hits the ship.
     setResult({
       correct: res.correct,
       accuracy: Math.round(res.accuracy * 100),
@@ -83,7 +86,6 @@ export default function ExercisePage({ params }: { params: { id: string } }) {
 
   const zone = difficultyZone(exercise.difficulty);
 
-  // Ship is "armed & aiming" while the child speaks, then fires on a correct read.
   const threatCleared = result?.correct ?? false;
   const shipHit = result !== null && !result.correct;
 
@@ -110,24 +112,35 @@ export default function ExercisePage({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Battle stage: threat drops from above, ship defends from below */}
-        <div className="relative mt-6 flex h-56 w-full max-w-sm flex-col items-center justify-between overflow-hidden">
-          {/* threat / explosion */}
-          <div key={exercise.id} className={`text-6xl drop-shadow-lg ${recording ? "animate-threat-fall" : ""} ${threatCleared ? "opacity-0" : ""}`}>
-            {threatCleared ? threat.debris : threat.threat}
+        {/* Battle stage: threat hovers above, ship defends from below */}
+        <div className="relative mt-6 flex h-56 w-full max-w-sm items-end justify-center overflow-hidden">
+          {/* obstacle / explosion (top area) */}
+          <div key={exercise.id} className="absolute top-0 left-1/2 -translate-x-1/2">
+            <div className={`relative ${recording ? "animate-threat-idle" : ""}`}>
+              {threatCleared ? (
+                <div className="animate-blast text-6xl">💥</div>
+              ) : (
+                <ThreatSprite kind={threat.kind} fallback={threat.fallback} className="h-20 w-20 drop-shadow-lg" />
+              )}
+            </div>
           </div>
-          {threatCleared && <div className="absolute top-0 text-6xl animate-blast">💥</div>}
-          {/* laser beam on a correct shot */}
-          {threatCleared && <div className="animate-laser absolute left-1/2 top-1/2 h-1.5 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-cyan-300 to-transparent" />}
 
-          {/* ship */}
-          <div className={`text-6xl drop-shadow-lg ${shipHit ? "animate-ship-shake" : recording || busy ? "animate-bob" : ""}`}>🚀</div>
-          {shipHit && <div className="absolute bottom-0 text-6xl animate-blast">💥</div>}
+          {/* bullet flying from the ship to the obstacle on a correct shot */}
+          {threatCleared && (
+            <Bullet className="animate-bullet-fire absolute left-1/2 bottom-8 h-12 w-5 -translate-x-1/2 drop-shadow-[0_0_8px_#22d3ee]" />
+          )}
+
+          {/* ship + impact (bottom area) */}
+          <div className={`relative text-6xl drop-shadow-lg ${shipHit ? "animate-ship-shake" : recording || busy ? "animate-bob" : ""}`}>
+            🚀
+            {shipHit && <div className="absolute inset-0 animate-blast text-6xl">💥</div>}
+            {recording && <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 animate-pulse-ring rounded-full bg-cyan-300" />}
+          </div>
         </div>
 
         {/* status line */}
         <p className="mt-2 text-sm font-semibold text-cyan-200">
-          {recording ? "Charging lasers… say the word! 👂"
+          {recording ? "Shots charged… say the word! 👂"
             : busy ? "Analyzing your speech… 🛰️"
             : shipHit ? "Direct hit! Say it again to fight back."
             : "Say the word to fire at the threat!"}

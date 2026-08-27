@@ -74,13 +74,33 @@ body {
 
 /* ---------- Spaceship-shooter (Cosmic Defense) animations ---------- */
 
-@keyframes threat-fall {
-  0% { transform: translateY(-40vh) rotate(0deg) scale(0.6); opacity: 0; }
-  15% { opacity: 1; }
-  100% { transform: translateY(8vh) rotate(360deg) scale(1.15); opacity: 1; }
+/* Obstacle hovers/idles in place while the child records (no timed fall). */
+@keyframes threat-idle {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(10px) rotate(6deg); }
 }
-.animate-threat-fall {
-  animation: threat-fall 1.6s linear forwards;
+.animate-threat-idle {
+  animation: threat-idle 1.2s ease-in-out infinite;
+}
+
+/* Bullet leaves the ship and travels up to the obstacle (0.35s flight). */
+@keyframes bullet-fire {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateY(-150px) scale(1); opacity: 0.2; }
+}
+.animate-bullet-fire {
+  animation: bullet-fire 0.35s ease-in forwards;
+}
+
+/* On a miss the obstacle slams down onto the ship. */
+@keyframes obstacle-strike {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  60% { transform: translateY(150px) rotate(30deg); opacity: 1; }
+  100% { transform: translateY(150px) rotate(30deg); opacity: 0; }
+}
+.animate-obstacle-strike {
+  animation: obstacle-strike 0.5s ease-in forwards;
 }
 
 @keyframes laser {
@@ -89,7 +109,7 @@ body {
   100% { opacity: 0; transform: scaleX(1); }
 }
 .animate-laser {
-  animation: laser 0.55s ease-out forwards;
+  animation: laser 0.35s ease-out forwards;
 }
 
 @keyframes ship-shake {
@@ -116,7 +136,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-floaty, .animate-bob, .animate-pop-in, .animate-wiggle,
   .animate-twinkle, .animate-pulse-ring, .confetti-piece,
-  .animate-threat-fall, .animate-laser, .animate-ship-shake, .animate-blast {
+  .animate-threat-idle, .animate-bullet-fire, .animate-obstacle-strike,
+  .animate-laser, .animate-ship-shake, .animate-blast {
     animation: none !important;
   }
 }
