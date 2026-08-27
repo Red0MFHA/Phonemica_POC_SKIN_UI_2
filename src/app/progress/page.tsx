@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { theme, alienForPhoneme } from "@/config/game";
+import BgZone from "@/components/BgZone";
 import { engineClient } from "@/services";
 import { clearGameState, getGameState } from "@/lib/state";
 import type { SessionProgress } from "@/types/engine";
@@ -30,7 +31,9 @@ export default function ProgressPage() {
   }, [router]);
 
   return (
-    <div className={`flex min-h-screen flex-col items-center bg-gradient-to-b ${theme.background} p-6`}>
+    <div className={`relative flex min-h-screen flex-col items-center overflow-hidden bg-gradient-to-b ${theme.background} p-6`}>
+      <BgZone />
+      <div className="relative z-10 flex w-full flex-col items-center">
       <h1 className="mt-2 text-2xl font-black text-white">Your Rescue Progress</h1>
       <p className="text-sm text-cyan-200">Master sounds to unlock new sectors</p>
 
@@ -70,6 +73,7 @@ export default function ProgressPage() {
           </button>
         </>
       )}
+      </div>
     </div>
   );
 }

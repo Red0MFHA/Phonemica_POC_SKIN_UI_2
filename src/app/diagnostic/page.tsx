@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mic, Loader2 } from "lucide-react";
 import { theme, alienForPhoneme } from "@/config/game";
+import BgZone from "@/components/BgZone";
 import { engineClient } from "@/services";
 import { getGameState } from "@/lib/state";
 import { createRecorder } from "@/lib/audio";
@@ -66,7 +67,9 @@ export default function DiagnosticPage() {
   }
 
   return (
-    <div className={`flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${theme.background} p-6`}>
+    <div className={`relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b ${theme.background} p-6`}>
+      <BgZone />
+      <div className="relative z-10 flex w-full flex-col items-center">
       <div className="mb-4 text-4xl">{alienForPhoneme[exercise.targetPhoneme] ?? "👽"}</div>
       <h1 className="text-2xl font-black text-white">Cosmic Scan Test</h1>
       <p className="mt-1 text-sm text-cyan-200">Say the word to scan your special sounds</p>
@@ -94,6 +97,7 @@ export default function DiagnosticPage() {
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className={`h-2.5 w-2.5 rounded-full ${i < step ? "bg-cyan-400" : "bg-white/30"}`} />
         ))}
+      </div>
       </div>
     </div>
   );

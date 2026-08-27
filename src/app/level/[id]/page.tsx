@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { theme, difficultyZone, alienForPhoneme } from "@/config/game";
+import BgZone from "@/components/BgZone";
 import { engineClient } from "@/services";
 import { getGameState } from "@/lib/state";
 import type { Level } from "@/types/engine";
@@ -23,7 +24,9 @@ export default function LevelIntroPage({ params }: { params: { id: string } }) {
   }, [params.id, router]);
 
   return (
-    <div className={`flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${theme.background} p-6`}>
+    <div className={`relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b ${theme.background} p-6`}>
+      <BgZone />
+      <div className="relative z-10 flex w-full flex-col items-center">
       {level ? (
         <>
           <div className="text-6xl">{alienForPhoneme[level.phoneme] ?? "👽"}</div>
@@ -42,6 +45,7 @@ export default function LevelIntroPage({ params }: { params: { id: string } }) {
       ) : (
         <p className="text-white">Loading…</p>
       )}
+      </div>
     </div>
   );
 }

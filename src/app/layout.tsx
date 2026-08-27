@@ -7,7 +7,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 export const metadata: Metadata = {
   title: "Cosmic Rescue",
-  description: "The Phoneme Rescue — a PHONOVA Engine game",
+  description: "The Phoneme Rescue — a Phonemica Engine game",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

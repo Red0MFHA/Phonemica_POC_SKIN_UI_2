@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { theme } from "@/config/game";
+import BgZone from "@/components/BgZone";
 import { engineClient } from "@/services";
 import { setGameState } from "@/lib/state";
 
@@ -34,7 +35,9 @@ export default function ChildPage() {
   }
 
   return (
-    <div className={`flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${theme.background} p-6`}>
+    <div className={`relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b ${theme.background} p-6`}>
+      <BgZone />
+      <div className="relative z-10 flex w-full flex-col items-center">
       <div className="w-full max-w-sm">
         <h1 className="text-center text-2xl font-black text-white">Who&apos;s flying?</h1>
 
@@ -97,6 +100,7 @@ export default function ChildPage() {
             {busy ? "Launching…" : "Start rescue"}
           </button>
         </div>
+      </div>
       </div>
     </div>
   );
