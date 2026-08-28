@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { theme } from "@/config/game";
+import { theme, GAME_ID } from "@/config/game";
 import BgZone from "@/components/BgZone";
 import { engineClient } from "@/services";
 import { setGameState } from "@/lib/state";
@@ -30,8 +30,17 @@ export default function ChildPage() {
       age,
       declaredPhonemes: mode === "known" ? selected : [],
     });
-    setGameState({ childId: child.id, sessionId: undefined });
-    router.push(mode === "unsure" ? "/diagnostic" : "/home");
+    if (mode === "unsure") {
+      // Parent is not sure → Engine runs a diagnostic. Create the session up front
+      // (it is marked "diagnostic" because the child is pending) so the diagnostic
+      // page has a sessionId to load exercises from — otherwise it bounces to /home.
+      const session = await engineClient.createSession(child.id, GAME_ID);
+      setGameState({ childId: child.id, sessionId: session.id });
+      router.push("/diagnostic");
+    } else {
+      setGameState({ childId: child.id, sessionId: undefined });
+      router.push("/home");
+    }
   }
 
   return (
