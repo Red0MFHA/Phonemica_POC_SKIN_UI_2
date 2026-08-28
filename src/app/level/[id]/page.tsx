@@ -15,11 +15,10 @@ export default function LevelIntroPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const sessionId = getGameState().sessionId;
     if (!sessionId) { router.replace("/home"); return; }
-    engineClient.getCurrentLevel(sessionId).then((lv) => {
-      setLevel(lv);
-      if (lv && lv.index !== +params.id) {
-        engineClient.getNextExercise(sessionId); // keep engine primed
-      }
+    const levelId = `lv-${params.id}`;
+    engineClient.selectLevel(sessionId, levelId).then((lv) => {
+      if (lv) setLevel(lv);
+      else router.replace("/home");
     });
   }, [params.id, router]);
 

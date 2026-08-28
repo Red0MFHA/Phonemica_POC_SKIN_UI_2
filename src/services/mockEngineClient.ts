@@ -170,6 +170,20 @@ export class MockEngineClient implements EngineClient {
     return this.states.get(sessionId)?.currentLevel ?? null;
   }
 
+  async selectLevel(sessionId: string, levelId: string): Promise<Level | null> {
+    const st = this.states.get(sessionId);
+    if (!st) return null;
+    const level = this.levels().find((l) => l.id === levelId) ?? null;
+    if (level) {
+      st.currentLevel = level;
+      st.levelIndex = level.index - 1;
+      st.exerciseIndex = 0;
+      st.session.currentLevelId = level.id;
+      this.persist();
+    }
+    return level;
+  }
+
   async getNextExercise(sessionId: string): Promise<Exercise> {
     const st = this.states.get(sessionId);
     if (!st) {
