@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { theme, difficultyZone, alienForPhoneme, GAME_ID } from "@/config/game";
 import BgZone from "@/components/BgZone";
@@ -8,15 +8,16 @@ import { engineClient } from "@/services";
 import { getGameState, setGameState } from "@/lib/state";
 import type { Level } from "@/types/engine";
 
-export default function LevelIntroPage({ params }: { params: { id: string } }) {
+export default function LevelIntroPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const id = React.use(params).id;
   const [level, setLevel] = useState<Level | null>(null);
 
   useEffect(() => {
     const state = getGameState();
     const childId = state.childId;
     if (!childId) { router.replace("/welcome"); return; }
-    const levelId = `lv-${params.id}`;
+    const levelId = `lv-${id}`;
     (async () => {
       let sid = state.sessionId;
       if (!sid) {
@@ -35,7 +36,7 @@ export default function LevelIntroPage({ params }: { params: { id: string } }) {
       if (lv) setLevel(lv);
       else router.replace("/home");
     })();
-  }, [params.id, router]);
+  }, [id, router]);
 
   return (
     <div className={`relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b ${theme.background} p-6`}>
@@ -50,7 +51,7 @@ export default function LevelIntroPage({ params }: { params: { id: string } }) {
             Navigate the {level.phoneme} sector. Say the words to power your rescue ship!
           </p>
           <button
-            onClick={() => router.push(`/exercise/${params.id}`)}
+            onClick={() => router.push(`/exercise/${id}`)}
             className="mt-8 rounded-2xl bg-cyan-400 px-10 py-3 text-lg font-bold text-indigo-950 shadow-xl transition-transform hover:scale-105"
           >
             Start mission

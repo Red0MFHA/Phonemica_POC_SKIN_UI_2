@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mic, Loader2, ArrowRight } from "lucide-react";
 import { theme, difficultyZone, alienForPhoneme } from "@/config/game";
@@ -24,8 +24,9 @@ const threatForPhoneme: Record<string, { kind: ThreatKind; fallback: string }> =
   "/l/": { kind: "comet", fallback: "🪐" },
 };
 
-export default function ExercisePage({ params }: { params: { id: string } }) {
+export default function ExercisePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const id = React.use(params).id;
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [done, setDone] = useState(0);
   const [recording, setRecording] = useState(false);
@@ -85,7 +86,7 @@ export default function ExercisePage({ params }: { params: { id: string } }) {
     if (!retrying) {
       const newDone = done + 1;
       if (newDone >= EXERCISES_PER_LEVEL) {
-        await engineClient.completeLevel(sessionId, params.id);
+        await engineClient.completeLevel(sessionId, id);
         router.push("/level-complete");
         return;
       }
