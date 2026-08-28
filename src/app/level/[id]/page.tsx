@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { theme, difficultyZone, alienForPhoneme } from "@/config/game";
+import { theme, difficultyZone, alienForPhoneme, GAME_ID } from "@/config/game";
 import BgZone from "@/components/BgZone";
 import { engineClient } from "@/services";
-import { getGameState } from "@/lib/state";
+import { getGameState, setGameState } from "@/lib/state";
 import type { Level } from "@/types/engine";
 
 export default function LevelIntroPage({ params }: { params: { id: string } }) {
@@ -13,13 +13,28 @@ export default function LevelIntroPage({ params }: { params: { id: string } }) {
   const [level, setLevel] = useState<Level | null>(null);
 
   useEffect(() => {
-    const sessionId = getGameState().sessionId;
-    if (!sessionId) { router.replace("/home"); return; }
+    const state = getGameState();
+    const childId = state.childId;
+    if (!childId) { router.replace("/welcome"); return; }
     const levelId = `lv-${params.id}`;
-    engineClient.selectLevel(sessionId, levelId).then((lv) => {
+    (async () => {
+      let sid = state.sessionId;
+      if (!sid) {
+        const s = await engineClient.createSession(childId, GAME_ID);
+        sid = s.id;
+        setGameState({ sessionId: sid });
+      }
+      let lv = await engineClient.selectLevel(sid!, levelId);
+      if (!lv) {
+        // Session existed in state but is missing from the store (e.g. stale
+        // localStorage from an older build) — rebuild it so the level loads.
+        const s = await engineClient.createSession(childId, GAME_ID);
+        setGameState({ sessionId: s.id });
+        lv = await engineClient.selectLevel(s.id, levelId);
+      }
       if (lv) setLevel(lv);
       else router.replace("/home");
-    });
+    })();
   }, [params.id, router]);
 
   return (
