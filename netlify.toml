@@ -1,0 +1,11 @@
+# Phonemica Cosmic Rescue — Netlify build config
+# The Netlify Next.js runtime plugin auto-caches .next/cache and node_modules
+# between deploys, making repeated builds fast (incremental, not from scratch).
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
