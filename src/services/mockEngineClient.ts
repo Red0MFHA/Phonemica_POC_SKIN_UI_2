@@ -171,7 +171,10 @@ export class MockEngineClient implements EngineClient {
   }
 
   async getNextExercise(sessionId: string): Promise<Exercise> {
-    const st = this.states.get(sessionId)!;
+    const st = this.states.get(sessionId);
+    if (!st) {
+      throw new Error("no active session");
+    }
     let level = st.currentLevel;
     let exerciseIndex = st.exerciseIndex;
 
@@ -210,7 +213,20 @@ export class MockEngineClient implements EngineClient {
   // Deterministic pseudo-attempt so the adaptive demo is reproducible.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params exist only to match the Engine contract
   async submitSpeech(sessionId: string, _exerciseId: string, _audioBlob: Blob): Promise<SpeechAnalysisResult> {
-    const st = this.states.get(sessionId)!;
+    const st = this.states.get(sessionId);
+    // No session (e.g. direct nav after the run ended) — treat as a neutral miss.
+    if (!st) {
+      return {
+        attemptId: runId("att"),
+        expectedPhoneme: "/s/",
+        detectedPhoneme: "/ʃ/",
+        accuracy: 0.5,
+        correct: false,
+        errorType: "substitution",
+        confidence: 0.5,
+        nextAction: { type: "retry", difficulty: 0.3 },
+      };
+    }
     // Reconstruct which exercise was attempted (the Engine is the sole evaluator).
     const phoneme = st.session.isDiagnostic ? TARGETS[st.diagnosticIndex % TARGETS.length] : st.currentLevel.phoneme;
     const exercise = {
@@ -320,7 +336,15 @@ export class MockEngineClient implements EngineClient {
   }
 
   async getProgress(sessionId: string): Promise<SessionProgress> {
-    const st = this.states.get(sessionId)!;
+    const st = this.states.get(sessionId);
+    if (!st) {
+      return {
+        childId: "",
+        sessionId,
+        totalStars: 0,
+        phonemes: TARGETS.map((ph) => ({ phoneme: ph, accuracy: 0, mastery: "needs_practice" as const })),
+      };
+    }
     const phonemes: ProgressPhoneme[] = TARGETS.map((ph) => {
       const rec = st.phonemeAccuracy[ph];
       const acc = rec && rec.count ? rec.total / rec.count : 0;

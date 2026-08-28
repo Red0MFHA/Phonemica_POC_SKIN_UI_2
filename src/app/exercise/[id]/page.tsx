@@ -30,6 +30,7 @@ export default function ExercisePage({ params }: { params: { id: string } }) {
   const [done, setDone] = useState(0);
   const [recording, setRecording] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [noSpeech, setNoSpeech] = useState(false);
   const [result, setResult] = useState<null | { correct: boolean; accuracy: number; retry: boolean; word: string }>(null);
 
   useEffect(() => {
@@ -50,12 +51,22 @@ export default function ExercisePage({ params }: { params: { id: string } }) {
   const threat = threatForPhoneme[current.targetPhoneme] ?? { kind: "rock" as ThreatKind, fallback: "🪨" };
 
   async function record() {
+    setNoSpeech(false);
     setRecording(true);
     const rec = createRecorder();
     await rec.start();
     await new Promise((r) => setTimeout(r, 1600));
     const blob = await rec.stop();
     setRecording(false);
+
+    // Only score if the child actually spoke. If the mic is unavailable or the
+    // captured audio was silent, ask for another try instead of showing a score.
+    const peak = rec.peak();
+    if (!rec.hasMic || peak < 0.02) {
+      setNoSpeech(true);
+      return;
+    }
+
     setBusy(true);
     const res = await engineClient.submitSpeech(current.sessionId, current.id, blob);
     setBusy(false);
@@ -142,6 +153,7 @@ export default function ExercisePage({ params }: { params: { id: string } }) {
         <p className="mt-2 text-sm font-semibold text-cyan-200">
           {recording ? "Shots charged… say the word! 👂"
             : busy ? "Analyzing your speech… 🛰️"
+            : noSpeech ? "Didn't catch that — say the word, then fire! 🎙️"
             : shipHit ? "Direct hit! Say it again to fight back."
             : "Say the word to fire at the threat!"}
         </p>
